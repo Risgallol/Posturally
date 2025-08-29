@@ -1,0 +1,752 @@
+/* =========================================
+   Postura — Compact Aesthetic Stylesheet
+   ========================================= */
+
+/* ---- Theme Tokens ---- */
+:root {
+  --background: hsl(250 100% 98%);
+  --foreground: hsl(215 25% 15%);
+
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(215 25% 15%);
+
+  --muted: hsl(220 14% 96%);
+  --muted-foreground: hsl(215 16% 47%);
+
+  --primary: hsl(195 85% 45%);
+  --primary-contrast: #fff;
+  --primary-hover: hsl(195 85% 40%);
+
+  --secondary: hsl(142 76% 50%);
+  --secondary-contrast: #fff;
+  --secondary-hover: hsl(142 76% 45%);
+
+  --accent: hsl(195 100% 92%);
+  --accent-foreground: hsl(195 85% 25%);
+
+  --border: hsl(220 13% 91%);
+  --input: hsl(220 13% 91%);
+  --ring: hsl(195 85% 45%);
+
+  --success: hsl(142 76% 45%);
+  --warning: hsl(45 93% 58%);
+  --error:   hsl(0 84% 60%);
+
+  --radius: 14px;
+  --gradient-card: linear-gradient(145deg, #fff, hsl(220 14% 96%));
+  --gradient-feature: linear-gradient(145deg, hsl(195 100% 95% / .9), hsl(142 76% 92%));
+
+  --shadow-soft: 0 6px 22px -8px hsl(195 85% 30% / .18);
+  --transition-smooth: all .24s cubic-bezier(.4,0,.2,1);
+
+  --column-max: 720px;
+  --gap: 12px;
+}
+
+/* ---- Base ---- */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--background);
+  color: var(--foreground);
+  font: 400 15px/1.45 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img, video, canvas { max-width: 100%; display: block; }
+
+/* ---- Layout container ---- */
+.container {
+  max-width: var(--column-max);
+  margin: 0 auto;
+  padding: clamp(14px, 2.5vw, 24px);
+}
+
+/* ---- Header ---- */
+h1 {
+  margin: 0 0 4px;
+  font-size: clamp(22px, 3.8vw, 30px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.tagline {
+  margin: 0 0 14px;
+  color: var(--muted-foreground);
+  font-size: 14px;
+}
+
+/* ---- Panels / Cards ---- */
+.panel {
+  background: var(--gradient-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+}
+
+/* ---- Video Wrapper (16:9) ---- */
+.video-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--background);
+  margin-bottom: 12px;
+}
+#cam, #overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+
+  transform: scaleX(-1);
+  transform-origin: center;
+}
+
+#overlay { background: transparent !important; pointer-events: none; }
+
+/* ======================================================
+   Controls
+   ====================================================== */
+.controls {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--gap);
+  align-items: center;
+  margin: 12px 0 14px;
+}
+
+/* Buttons (always 3 across) */
+.button-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gap);
+  margin-bottom: var(--gap);
+}
+.button-row button {
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  white-space: nowrap;
+}
+#cameraToggle { color: var(--primary-contrast); background: var(--primary); }
+#cameraToggle:hover { background: var(--primary-hover); transform: translateY(-1px); }
+#cameraToggle.is-on { background: var(--error); }
+#calibrate { color: var(--accent-foreground); background: var(--accent); }
+#calibrate:hover { transform: translateY(-1px); filter: brightness(.98); }
+#statusPip { color: var(--secondary-contrast); background: var(--secondary); }
+#statusPip:hover { background: var(--secondary-hover); transform: translateY(-1px); }
+#statusPip.is-active {
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+#statusPip.is-active:hover {
+  background: var(--muted);
+}
+
+/* Generic control card */
+label.inline {
+  grid-column: span 6;
+  display: grid;
+  grid-template-columns: 1fr minmax(96px, 34%);
+  align-items: center;
+  gap: 8px;
+  background: var(--gradient-feature);
+  border: 1px solid color-mix(in oklab, var(--border), transparent 30%);
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+label.inline input[type="number"] {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--input);
+  border-radius: 10px;
+  padding: 6px 8px;
+  color: var(--foreground);
+  transition: var(--transition-smooth);
+  outline: none;
+  font-size: 14px;
+}
+label.inline input[type="number"]:focus {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring), transparent 72%);
+}
+label.inline input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary); }
+label.inline:has(> input[type="checkbox"]) { grid-template-columns: auto 1fr; }
+
+/* --- Force full-width rows --- */
+label.inline.row-full { grid-column: 1 / -1; }
+
+/* ======================================================
+   Sensitivity block (label on left, slider fills right)
+   ====================================================== */
+label.inline.sensitivity-block {
+  grid-template-columns: auto 1fr; /* "Sensitivity" | slider area */
+  align-items: center;
+  gap: 12px;
+}
+
+/* Slider area uses entire right column */
+.sensitivity-block .slider-scale {
+  position: relative;           /* anchor for absolute Low/High */
+  width: 100%;
+}
+
+/* Reserve space for Low/High with inner padding on the track */
+.sensitivity-block .slider-wrap {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding-inline: 40px;         /* space for labels at ends */
+  overflow: visible;
+}
+
+/* Range track */
+.sensitivity-block input[type="range"] {
+  width: 100%;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--ring), white 82%);
+  outline: none;
+  z-index: 2;
+  cursor: pointer;
+}
+.sensitivity-block input[type="range"]::-webkit-slider-thumb {
+  appearance: none; width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--primary); border: 2px solid white;
+  box-shadow: 0 1px 6px rgba(0,0,0,.2);
+  cursor: pointer; position: relative; z-index: 3;
+}
+.sensitivity-block input[type="range"]::-moz-range-thumb {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--primary); border: 2px solid white;
+  box-shadow: 0 1px 6px rgba(0,0,0,.2);
+  cursor: pointer; z-index: 3;
+}
+
+/* Ticks aligned to the padded track */
+.scale-ticks {
+  position: absolute;
+  top: 50%;
+  left: 40px; right: 40px;      /* match slider-wrap padding */
+  display: flex;
+  justify-content: space-between;
+  transform: translateY(-50%);
+  z-index: 1;
+  pointer-events: none;
+}
+.scale-ticks span {
+  width: 1px; height: 10px;
+  background: var(--muted-foreground);
+  opacity: .6;
+  pointer-events: none;
+}
+
+/* Low / High labels overlaid at the ends */
+.scale-label {
+  position: absolute;
+  top: 50%; transform: translateY(-50%);
+  font-size: 11px;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.slider-scale .scale-label:first-of-type { left: 10px; }  /* Low */
+.slider-scale .scale-label:last-of-type  { right: 10px; } /* High */
+
+/* Tooltip over the thumb */
+.slider-tooltip {
+  position: absolute;
+  bottom: 150%;
+  left: 0; transform: translateX(-50%);
+  background: var(--card);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-size: 12px; line-height: 1.2;
+  box-shadow: var(--shadow-soft);
+  pointer-events: none;
+  opacity: 0; transition: opacity .12s ease;
+  white-space: nowrap;
+  z-index: 4;
+}
+.slider-wrap:hover .slider-tooltip,
+.slider-wrap:has(input[type="range"]:active) .slider-tooltip { opacity: 1; }
+
+/* ======================================================
+   Timers + Beep: three cards on one row
+   ====================================================== */
+.inline-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gap);
+}
+.inline-row > label.inline {
+  grid-column: auto;
+  grid-template-columns: 1fr minmax(90px, 44%);
+}
+
+/* ---- Status Panel ---- */
+.status-panel {
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+  
+}
+
+/* Make the main status line more obvious */
+#statusMsg {
+  font-size: 1.2rem;   /* ~20px */
+  font-weight: 500;     /* semibold */
+  margin-bottom: 0.5rem;
+   /* already larger font; you can add: */
+  opacity: .95;
+}
+
+.status-instruction { color: var(--muted-foreground); font-size: 13px; }
+.status-strong {
+  font-weight: 700;
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-size: 14px;
+}
+.status-ok   { border-color: color-mix(in oklab, var(--success), var(--border) 58%); box-shadow: 0 0 0 3px color-mix(in oklab, var(--success), transparent 86%); }
+.status-warn { border-color: color-mix(in oklab, var(--warning), var(--border) 58%); box-shadow: 0 0 0 3px color-mix(in oklab, var(--warning), transparent 86%); }
+.status-bad  { border-color: color-mix(in oklab, var(--error),   var(--border) 58%); box-shadow: 0 0 0 3px color-mix(in oklab, var(--error),   transparent 86%); }
+
+/* ---- Footer ---- */
+footer .hint {
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  margin-top: 6px;
+}
+/* Two boxes side-by-side under the status line */
+.status-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* Reuse the strong card style but make sure it stretches nicely */
+.status-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* helps when Score is present */
+  min-height: 40px;
+}
+
+/* Stack on small screens */
+@media (max-width: 640px) {
+  .status-row { grid-template-columns: 1fr; }
+}
+
+
+/* ---- Focus Rings ---- */
+button:focus-visible, input:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring), transparent 72%);
+}
+
+/* ---- Small screens ---- */
+@media (max-width: 720px) {
+  .controls { grid-template-columns: 1fr 1fr; }
+  .button-row { grid-template-columns: 1fr 1fr 1fr; }
+  label.inline { grid-column: span 2; grid-template-columns: 1fr minmax(110px, 45%); }
+
+  /* Sensitivity full width + room for labels on narrow screens */
+  label.inline.row-full { grid-column: 1 / -1; }
+  .sensitivity-block .slider-wrap { padding-inline: 32px; }
+  .scale-ticks { left: 32px; right: 32px; }
+
+  /* Stack timers + beep */
+  .inline-row { grid-template-columns: 1fr; }
+  .inline-row > label.inline { grid-template-columns: 1fr minmax(110px, 45%); }
+}
+
+/* ========== Timers card (Option C) ========== */
+.timers-card {
+  grid-column: 1 / -1;                     /* full row */
+  background: var(--gradient-feature);
+  border: 1px solid color-mix(in oklab, var(--border), transparent 30%);
+  border-radius: 12px;
+  padding: 10px;
+  display: grid;
+  gap: 10px;
+}
+
+/* Header: title on left, compact beep switch on right */
+.timers-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.timers-title {
+  font-weight: 600;
+}
+/* ==== App Header (compact, branded) ==== */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+
+/* Primary/secondary header CTAs already inherit .badge/.badge.ghost */
+
+/* Pulse effect to draw attention to Start Camera */
+.pulse {
+  animation: pulse 1.3s ease-in-out 3;
+}
+@keyframes pulse {
+  0% { transform: translateY(0); box-shadow: var(--shadow-soft); }
+  50% { transform: translateY(-1px) scale(1.01); box-shadow: 0 10px 30px rgba(0,0,0,.12); }
+  100% { transform: translateY(0); box-shadow: var(--shadow-soft); }
+}
+
+
+
+
+.app-subtitle {
+  margin: 2px 0 0;
+  color: var(--muted-foreground);
+  font-size: 13px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+
+/* Badge-style links/buttons */
+.badge {
+  appearance: none;
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: var(--primary-contrast);
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  transition: var(--transition-smooth);
+  text-decoration: none;
+}
+.badge:hover { background: var(--primary-hover); transform: translateY(-1px); }
+
+.badge.ghost {
+  background: transparent;
+  color: var(--accent-foreground);
+  border-color: color-mix(in oklab, var(--ring), white 65%);
+}
+.badge.ghost:hover {
+  background: var(--accent);
+  border-color: var(--ring);
+}
+
+/* Stack neatly on small screens */
+@media (max-width: 640px) {
+  .app-header { flex-direction: column; align-items: stretch; }
+  .header-actions { justify-content: flex-start; }
+}
+
+/* ---- Accent Stripe Header ---- */
+.app-header-stripe {
+  display: flex;
+  align-items: flex-start;
+  padding-left: 14px;
+  border-left: 5px solid var(--primary); /* brand-colored bar */
+  margin-bottom: 20px;
+}
+
+.title-wrap {
+  margin-left: 10px; /* space between stripe and text */
+}
+
+.app-title {
+  margin: 0;
+  font-size: clamp(22px, 3vw, 28px);
+  font-weight: 800;
+  color: var(--foreground);
+}
+
+.app-title .divider { opacity: .6; }
+.app-title .descriptor {
+  font-style: normal;
+  font-weight: 600;
+  color: color-mix(in oklab, var(--foreground), white 30%);
+}
+
+.app-subtitle {
+  margin: 4px 0 8px;
+  color: var(--muted-foreground);
+  font-size: 14px;
+}
+
+.help-link {
+  appearance: none;
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+.help-link:hover {
+  color: var(--primary-hover);
+}
+
+
+
+/* Discreet beep pill */
+.beep-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border: 1px solid var(--input);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+.beep-toggle input { width: 14px; height: 14px; accent-color: var(--primary); }
+
+/* Two compact inner timer boxes */
+.timers-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--gap);
+}
+.timer-box {
+  background: var(--gradient-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: grid;
+  grid-template-columns: 1fr minmax(90px, 44%);
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+/* Inputs inside the timer boxes reuse your existing styling */
+.timer-box input[type="number"] {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--input);
+  border-radius: 10px;
+  padding: 6px 8px;
+  color: var(--foreground);
+  transition: var(--transition-smooth);
+  outline: none;
+  font-size: 14px;
+}
+.timer-box input[type="number"]:focus {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring), transparent 72%);
+}
+/* Status panel: take full container width */
+.status-panel.panel {
+  display: block;        /* ensure block-level (not inline/grid-sized to content) */
+  width: 100%;
+  grid-column: 1 / -1;   /* in case it ever sits inside a grid */
+  box-sizing: border-box;
+}
+
+/* Make inner rows stretch with the card */
+.status-panel {
+  grid-template-columns: 1fr;
+}
+.status-panel > * {
+  width: 100%;
+}
+
+/* Responsive: stack inner boxes on narrow screens */
+@media (max-width: 720px) {
+  .timers-grid { grid-template-columns: 1fr; }
+}
+  /* Onboarding overlay */
+/* Lighter dim so text remains readable */
+.onb-overlay {
+  position: fixed; inset: 0;
+  background: rgba(10, 18, 32, 0.35);   /* was 0.55 */
+  backdrop-filter: blur(1px);           /* tiny blur -> nicer, optional */
+  z-index: 10000;
+  display: none;
+}
+.onb-overlay.is-open { display: block; }
+
+/* Compact bright card near the module */
+.onb-panel {
+  position: fixed;
+  /* was: width: clamp(260px, 42vw, 520px); */
+  width: min(520px, 92vw);        /* fit on narrow screens */
+  max-height: 80vh;               /* never taller than viewport */
+  overflow: auto;                 /* scroll inside if text is long */
+  background: var(--card);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25),
+              0 0 0 3px color-mix(in oklab, var(--ring), transparent 78%);
+  z-index: 10002;
+  padding: 16px 18px;
+}
+
+
+/* Hide panel until positioned (prevents top-bar flash) */
+.onb-panel[data-ready="0"] { opacity: 0; pointer-events: none; }
+
+
+
+  .onb-title {
+    font-weight: 700; margin: 0 0 6px; font-size: 16px;
+  }
+  .onb-body {
+    margin: 0 0 12px; line-height: 1.4; font-size: 14px;
+  }
+  .onb-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .onb-btn {
+    padding: 8px 12px; border-radius: 10px; border: 1px solid #e5e7eb; background:#fff; cursor: pointer;
+  }
+  .onb-btn.primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-contrast);
+}
+  .onb-skip { margin-right: auto; opacity: 0.85; }
+
+  /* Target highlight */
+/* Draw a crisp ring around the target, no extra dark layer */
+.onb-highlight {
+  position: relative;
+  z-index: 10001 !important;
+  box-shadow:
+    0 0 0 3px var(--ring),          /* colored ring from your theme */
+    0 8px 18px rgba(0,0,0,.18);     /* soft lift so it pops */
+  border-radius: 10px;
+  transition: box-shadow .2s ease;
+}
+
+
+  /* Little step indicator */
+  .onb-kbd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  background: #f9fafb;         /* lighter than button */
+  border: 1px solid #d1d5db;   /* subtle gray */
+  color: #374151;              /* dark gray text */
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+  /* Make the panel responsive */
+  @media (max-width: 600px) {
+    .onb-panel { max-width: calc(100vw - 24px); }
+  }
+
+  /* Optional: nicer linklike button in header */
+  .linklike:hover { text-decoration: none; }
+
+  #contactModal .onb-panel {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 20px 22px;
+}
+
+
+
+#contactModal .onb-title { margin: 0 0 8px; }
+#contactModal .onb-body  { margin: 0 0 14px; }
+
+/* Stack each field nicely; larger paddings & rounded inputs */
+#contactModal label.inline {
+  grid-column: 1 / -1;
+  grid-template-columns: 1fr;     /* label above control */
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+#contactModal label.inline input,
+#contactModal label.inline textarea {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--input);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+#contactModal textarea { min-height: 110px; resize: vertical; }
+
+/* Actions: Cancel (ghost) left, Send (primary) right */
+#contactModal .onb-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Cancel left, Send right */
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Buttons look like the dark modal’s layout/weight */
+#contactModal .onb-btn {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+#contactModal .onb-btn.primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-contrast);
+}
+#contactModal .onb-btn.primary:hover {
+  background: var(--primary-hover);
+}
+
+
+
+
+/* PiP compatibility notice */
+#pipNotice {
+  position: fixed; right: 16px; bottom: 16px; z-index: 100000;
+  max-width: 380px; padding: 12px 14px; border-radius: 12px;
+  background: #1f2937; color: #fff; box-shadow: var(--shadow-soft);
+  display: none; font: 500 14px/1.35 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+#pipNotice small { opacity: .8; display: block; margin-top: 6px; }
+#pipNotice.show { display: block; }
+

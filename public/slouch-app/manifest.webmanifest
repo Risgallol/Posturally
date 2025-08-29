@@ -1,0 +1,9 @@
+{
+  "name": "SlouchApp",
+  "short_name": "SlouchApp",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0b1320",
+  "theme_color": "#57a6ff",
+  "icons": []
+}
