@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Slouch Detector Design System - Health & Wellness Theme */
+
+@layer base {
+  :root {
+    --background: 250 100% 98%;
+    --foreground: 215 25% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 15%;
+
+    --primary: 195 85% 45%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 195 85% 40%;
+
+    --secondary: 142 76% 50%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-hover: 142 76% 45%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 195 100% 92%;
+    --accent-foreground: 195 85% 25%;
+
+    --health-success: 142 76% 50%;
+    --health-warning: 45 93% 58%;
+    --health-error: 0 84% 60%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 195 85% 45%;
+
+    --radius: 0.75rem;
+
+    /* Custom gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(195 85% 45%), hsl(142 76% 50%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(220 14% 96%));
+    --gradient-feature: linear-gradient(to bottom right, hsl(195 100% 92%), hsl(142 76% 90%));
+    
+    /* Shadows */
+    --shadow-soft: 0 4px 20px -2px hsl(195 85% 45% / 0.1);
+    --shadow-medium: 0 8px 30px -4px hsl(195 85% 45% / 0.15);
+    --shadow-strong: 0 16px 40px -8px hsl(195 85% 45% / 0.2);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 215 28% 8%;
+    --foreground: 210 40% 98%;
+
+    --card: 215 28% 10%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 215 28% 10%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 195 85% 55%;
+    --primary-foreground: 215 28% 8%;
+    --primary-hover: 195 85% 60%;
+
+    --secondary: 142 76% 60%;
+    --secondary-foreground: 215 28% 8%;
+    --secondary-hover: 142 76% 65%;
+
+    --muted: 215 28% 15%;
+    --muted-foreground: 215 20% 70%;
+
+    --accent: 195 85% 20%;
+    --accent-foreground: 195 85% 90%;
+
+    --health-success: 142 76% 60%;
+    --health-warning: 45 93% 68%;
+    --health-error: 0 84% 70%;
+
+    --destructive: 0 84% 70%;
+    --destructive-foreground: 215 28% 8%;
+
+    --border: 215 28% 20%;
+    --input: 215 28% 20%;
+    --ring: 195 85% 55%;
+
+    --gradient-hero: linear-gradient(135deg, hsl(195 85% 35%), hsl(142 76% 40%));
+    --gradient-card: linear-gradient(145deg, hsl(215 28% 10%), hsl(215 28% 15%));
+    --gradient-feature: linear-gradient(to bottom right, hsl(195 85% 15%), hsl(142 76% 15%));
+    
+    --shadow-soft: 0 4px 20px -2px hsl(0 0% 0% / 0.3);
+    --shadow-medium: 0 8px 30px -4px hsl(0 0% 0% / 0.4);
+    --shadow-strong: 0 16px 40px -8px hsl(0 0% 0% / 0.5);
+
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* --- Smooth anchor scrolling + accessibility + anchor offset --- */
+  html {
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+ /* make anchors account for the sticky header height */
+section[id] {
+  scroll-margin-top: calc(var(--header-h, 96px) + 8px);
+}
+}
