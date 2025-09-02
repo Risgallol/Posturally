@@ -603,7 +603,7 @@ button:focus-visible, input:focus-visible {
   position: fixed; inset: 0;
   background: rgba(10, 18, 32, 0.35);   /* was 0.55 */
   backdrop-filter: blur(1px);           /* tiny blur -> nicer, optional */
-  z-index: 10000;
+  z-index: 9999;
   display: none;
 }
 .onb-overlay.is-open { display: block; }
@@ -621,7 +621,7 @@ button:focus-visible, input:focus-visible {
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.25),
               0 0 0 3px color-mix(in oklab, var(--ring), transparent 78%);
-  z-index: 10002;
+  z-index: 10010;
   padding: 16px 18px;
 }
 
@@ -652,7 +652,7 @@ button:focus-visible, input:focus-visible {
 /* Draw a crisp ring around the target, no extra dark layer */
 .onb-highlight {
   position: relative;
-  z-index: 10001 !important;
+  z-index: 10005 !important;
   box-shadow:
     0 0 0 3px var(--ring),          /* colored ring from your theme */
     0 8px 18px rgba(0,0,0,.18);     /* soft lift so it pops */
