@@ -95,7 +95,7 @@ export default function Footer() {
               <a
                 aria-label="GitHub"
                 className="rounded-xl border border-white/15 p-2 hover:bg-white/5"
-                href="https://github.com/yourrepo"
+                href="https://github.com/Risgallol/Posturally"
                 target="_blank"
                 rel="noreferrer"
               >
