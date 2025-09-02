@@ -72,8 +72,8 @@ export function createPipOverlay({
     const rawState     = parsePosture(postureTxt); // immediate state
     const directionRaw = (directionEl?.textContent ?? document.getElementById("directionMsg")?.textContent ?? "").trim();
     const directionTxt = directionRaw.replace(/^Direction:\s*/i, "");
-    const dirGlyph     = /right/i.test(directionTxt) ? "→"
-                        : /left/i.test(directionTxt)  ? "←"
+    const dirGlyph     = /right/i.test(directionTxt) ? "←" //shows opposite direction
+                        : /left/i.test(directionTxt)  ? "→"
                         : "•";
 
     // Gate BAR COLOR using the same hold as the beep UI

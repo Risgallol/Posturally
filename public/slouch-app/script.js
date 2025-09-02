@@ -293,6 +293,32 @@ function toggleCamera() {
   if (isCameraOn) stopCam(); else startCam();
 }
 
+// --- Keep Active button UI state (turn gray while PiP is active)
+const keepActiveBtn = els.pip;
+const pipCarrierVideo = document.getElementById("pipVideo");
+
+if (keepActiveBtn && pipCarrierVideo) {
+  // When PiP enters (fires on the video element)
+  pipCarrierVideo.addEventListener("enterpictureinpicture", () => {
+    keepActiveBtn.classList.add("is-active");
+    keepActiveBtn.textContent = "Deactivate";
+  });
+
+  // When PiP exits (fires on document)
+  document.addEventListener("leavepictureinpicture", () => {
+    keepActiveBtn.classList.remove("is-active");
+    keepActiveBtn.textContent = "Keep active";
+  });
+
+  // If user clicks while already active, exit PiP
+  keepActiveBtn.addEventListener("click", async () => {
+    if (document.pictureInPictureElement) {
+      try { await document.exitPictureInPicture(); } catch {}
+    }
+  });
+}
+
+
 // Calibration helper
 function startCalibration() {
   if (!isCameraOn) return; // only when camera is running
