@@ -109,7 +109,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noreferrer"
               >
-                <Twitter className="h-5 w-5" />
+                <LinkedIn className="h-5 w-5" />
               </a>
             </div>
             <p className="mt-3 text-sm text-white/70">
