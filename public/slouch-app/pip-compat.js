@@ -40,9 +40,9 @@
     var box = ensureNoticeNode();
     box.innerHTML =
       '<strong>Keep Active isn’t available in this browser.</strong><br/>' +
-      'The background mini-window works only on Chromium browsers: ' +
+      'The background mini-window works only on laptop and Chromium browsers: ' +
       '<b>Google Chrome</b>, <b>Microsoft Edge</b>, <b>Brave</b>, or <b>Opera</b>.' +
-      '<small style="opacity:.8;display:block;margin-top:6px">You can still use Posturally here, but continuous background monitoring requires a Chromium browser. We’re very sorry for this inconvenience </small>';
+      '<small style="opacity:.8;display:block;margin-top:6px">You can still use Posturally here, but continuous background monitoring requires a different browser or device. We’re very sorry for this inconvenience. </small>';
     box.style.display = "block";
     if (box._t) clearTimeout(box._t);
     box._t = setTimeout(function () { box.style.display = "none"; }, 8000);
