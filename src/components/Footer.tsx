@@ -1,5 +1,5 @@
 // components/Footer.tsx
-import { Github, Twitter, Mail } from "lucide-react";
+import { Github, LinkedIn, Mail } from "lucide-react";
 import { useState } from "react";
 import ContactForm from "@/components/ContactForm";
 
@@ -103,9 +103,9 @@ export default function Footer() {
               </a>
 
               <a
-                aria-label="Twitter"
+                aria-label="LinkedIn"
                 className="rounded-xl border border-white/15 p-2 hover:bg-white/5"
-                href="https://twitter.com/yourhandle"
+                href="www.linkedin.com/in/augustin-risgallah" 
                 target="_blank"
                 rel="noreferrer"
               >
