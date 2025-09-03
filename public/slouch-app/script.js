@@ -379,7 +379,7 @@ async function loop() {
           calibrating = false;
           calibSamples = [];
           calibCount = 0;
-          setStatus("<b>Running</b><br>Click <b>Keep active</b> to open the mini window.<br>Keep this <b>Postura</b> tab open for background monitoring.");
+          setStatus("<b>Running</b><br>Click <b>Keep active</b> to open the mini window.<br>Keep this <b>Posturally</b> tab open for background monitoring.");
 ;
         }
       } else {
