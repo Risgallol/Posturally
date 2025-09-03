@@ -152,7 +152,7 @@ function setStatus(msg) { if (els.statusMsg) els.statusMsg.innerHTML = msg; }
 
 // Centralized copy for the running state
 function runningHint() {
-  return "<b>Running</b><br>Click <b>Keep active</b> to open the mini window.<br>Keep this <b>Postura</b> tab open for background monitoring.";
+  return "<b>Running</b><br>Click <b>Keep active</b> to open the mini window.<br>Keep this <b>Posturally</b> tab open for background monitoring.";
 }
 
 // Convert slouch index (~1 good, ↑ worse) to a 0–100 score based on current threshold.
@@ -418,14 +418,14 @@ async function loop() {
           slouchEpisodeAlerted = true;
           if (els.beep?.checked) beep();
         }
-        setStatus("<b>Running</b><br>Click <b>Keep active</b> to open the mini window.<br>Keep this <b>Postura</b> tab open for background monitoring.");
+        setStatus("<b>Running</b><br>Click <b>Keep active</b> to open the mini window.<br>Keep this <b>Posturally</b> tab open for background monitoring.");
 
       } else {
         slouchStart = null;
         slouchEpisodeAlerted = false;
         els.postureMsg && (els.postureMsg.textContent = `Posture: Upright — Score: ${scoreTxt}`);
         if (baselineMetric != null) {
-          setStatus("<b>Running</b><br>Click <b>Keep active</b> to open the mini window.<br>Keep this <b>Postura</b> tab open for background monitoring.");
+          setStatus("<b>Running</b><br>Click <b>Keep active</b> to open the mini window.<br>Keep this <b>Posturally</b> tab open for background monitoring.");
 
         }
       }
