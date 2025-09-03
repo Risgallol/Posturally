@@ -1,8 +1,8 @@
-// components/Footer.tsx
-import { Github, Twitter, Mail } from "lucide-react";
+"use client";
+
+import { Github, Linkedin, Mail } from "lucide-react";
 import { useState } from "react";
 import ContactForm from "@/components/ContactForm";
-
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,7 @@ import {
   DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Link } from "react-router-dom";
 
 export default function Footer() {
   const [open, setOpen] = useState(false);
@@ -24,10 +25,12 @@ export default function Footer() {
             <h3 className="text-xl font-semibold">Posturally</h3>
             <p className="mt-3 max-w-sm text-sm text-white/75">
               Privacy-first posture monitoring that helps you maintain better
-              health throughout your workday.
+              health throughout your workday. 
+            </p>
+            <p className="mt-2 text-xs text-white/60">
+    Optimized for laptops and Chrome browsers.
             </p>
 
-            {/* Contact line opens modal */}
             <p className="mt-4 text-sm">
               Questions?{" "}
               <Dialog open={open} onOpenChange={setOpen}>
@@ -50,32 +53,14 @@ export default function Footer() {
 
           {/* Product */}
           <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wide text-white/80">
-              Product
-            </h4>
-            <ul className="mt-4 space-y-2 text-sm">
-              <li>
-                <a className="opacity-90 hover:opacity-100" href="#features">
-                  Features
-                </a>
-              </li>
-              <li>
-                <a className="opacity-90 hover:opacity-100" href="#how-it-works">
-                  How It Works
-                </a>
-              </li>
-              <li>
-                <a className="opacity-90 hover:opacity-100" href="#privacy">
-                  Privacy
-                </a>
-              </li>
-              <li>
-                <a className="opacity-90 hover:opacity-100" href="/app">
-                  Launch App
-                </a>
-              </li>
-            </ul>
-          </div>
+          <h4 className="text-sm font-semibold uppercase tracking-wide text-white/80">Product</h4>
+          <ul className="mt-4 space-y-2 text-sm">
+            <li><a href="#features" className="opacity-90 hover:opacity-100">Features</a></li>
+            <li><a href="#how-it-works" className="opacity-90 hover:opacity-100">How It Works</a></li>
+            <li><a href="#privacy" className="opacity-90 hover:opacity-100">Privacy</a></li>
+            <li><Link to="/app" className="opacity-90 hover:opacity-100">Launch App</Link></li>
+          </ul>
+        </div>
 
           {/* Connect */}
           <div>
@@ -83,7 +68,6 @@ export default function Footer() {
               Connect
             </h4>
             <div className="mt-4 flex gap-3">
-              {/* Modal trigger via icon */}
               <button
                 aria-label="Contact us"
                 onClick={() => setOpen(true)}
@@ -103,17 +87,17 @@ export default function Footer() {
               </a>
 
               <a
-                aria-label="Twitter"
+                aria-label="LinkedIn"
                 className="rounded-xl border border-white/15 p-2 hover:bg-white/5"
-                href="https://twitter.com/yourhandle"
+                href="https://www.linkedin.com/in/augustin-risgallah"
                 target="_blank"
                 rel="noreferrer"
               >
-                <Twitter className="h-5 w-5" />
+                <Linkedin className="h-5 w-5" />
               </a>
             </div>
             <p className="mt-3 text-sm text-white/70">
-              Join our community for updates and health tips.
+              Follow updates and connect!
             </p>
           </div>
         </div>
@@ -122,9 +106,7 @@ export default function Footer() {
 
         <div className="flex flex-col items-center justify-between gap-3 text-xs text-white/70 md:flex-row">
           <p>© {new Date().getFullYear()} Posturally. Built with privacy in mind.</p>
-          <p>
-            Made with <span aria-hidden>♥</span> for better health
-          </p>
+          <p>Made with <span aria-hidden>♥</span> for better health</p>
         </div>
       </div>
     </footer>
