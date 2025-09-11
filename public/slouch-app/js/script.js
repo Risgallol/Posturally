@@ -261,7 +261,7 @@ async function startCam() {
     loop();
 
     if ("serviceWorker" in navigator) {
-      try { navigator.serviceWorker.register("./sw.js"); } catch {}
+      try { navigator.serviceWorker.register("./js/sw.js"); } catch {}
     }
   } catch (err) {
     console.error("Camera start failed:", err);
