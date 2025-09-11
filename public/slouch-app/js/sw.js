@@ -4,9 +4,13 @@ const ASSETS = [
   "./",
   "./index.html",
   "./style.css",
-  "./script.js",
   "./privacy.html",
-  "./js/sensitivity.js"
+  "./js/script.js",
+  "./js/onboarding.js",
+  "./js/pip-overlay.js",
+  "./js/pip-status.js",
+  "./js/sensitivity.js",
+  "./js/pip-compat.js"
 ];
 
 self.addEventListener("install", (e) => {
