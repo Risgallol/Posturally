@@ -1,5 +1,5 @@
 
-const CACHE = "slouchapp-v1";
+const CACHE = "posturally-v2";
 const ASSETS = [
   "./",
   "./index.html",
