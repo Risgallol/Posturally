@@ -5,7 +5,7 @@ import {
   FilesetResolver
 } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
 
-import { createPipOverlay } from "./pip-overlay.js?v=2025-08-26a";
+import { createPipOverlay } from "./pip-overlay.js";
 
 
 /* --------- DOM --------- */
