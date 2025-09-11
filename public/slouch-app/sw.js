@@ -6,7 +6,7 @@ const ASSETS = [
   "./style.css",
   "./script.js",
   "./privacy.html",
-  "./manifest.webmanifest"
+  "./js/sensitivity.js"
 ];
 
 self.addEventListener("install", (e) => {
