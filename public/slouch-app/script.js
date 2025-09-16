@@ -22,10 +22,11 @@ const els = {
   cam: document.getElementById("cam"),
   overlay: document.getElementById("overlay"),
 
-  // Status panel elements
+  // Sidebar / status elements
   statusMsg: document.getElementById("statusMsg"),
-  postureMsg: document.getElementById("postureMsg"),
-  directionMsg: document.getElementById("directionMsg"),
+  postureMsg: document.getElementById("postureMsg"),       // value ONLY ("Upright" | "Slouching")
+  directionMsg: document.getElementById("directionMsg"),   // value ONLY ("Left" | "Center" | "Right")
+  postureScore: document.getElementById("postureScore"),   // % when upright, "% • sec" when slouching
 
   // Controls
   ratio: document.getElementById("ratio"),
@@ -35,7 +36,8 @@ const els = {
 
   calibrate: document.getElementById("calibrate"),
 };
-// On first load, be explicit:
+
+// On first load:
 setCameraOffUI();
 setStatus("Camera is off — click Start Camera to begin.");
 
@@ -46,13 +48,11 @@ const pipOverlay = createPipOverlay({
   directionEl: els.directionMsg,
   hintEl:      els.statusMsg,
   pipVideoEl:  document.getElementById("pipVideo"),
-  buttonEl:    els.pip,     // clicking this toggles PiP
+  buttonEl:    els.pip,
   width: 240,
   height: 135,
   fps: 12
 });
-
-// (Optional) expose for debugging in console
 window.pipOverlay = pipOverlay;
 
 /* --------- Canvas / Audio --------- */
@@ -60,19 +60,19 @@ const ctx = els.overlay.getContext("2d");
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 /* --------- Config --------- */
-const CALIB_FRAMES   = 30;        // ~1s @30fps
-const COOLDOWN_MS    = 10_000;    // shared cooldown
-const YAW_THRESHOLD  = 0.12;      // 0.10–0.18 typical
-const YAW_SMOOTH     = 0.7;       // EMA smoothing
-const YAW_FLIP       = true;      // flip sign if LEFT/RIGHT feels inverted
+const CALIB_FRAMES   = 10;
+const COOLDOWN_MS    = 10_000;
+const YAW_THRESHOLD  = 0.12;
+const YAW_SMOOTH     = 0.7;
+const YAW_FLIP       = true;
 
-// Use the same values as your sensitivity slider mapping
-const THRESH_MIN = 1.05; // most sensitive
-const THRESH_MAX = 1.50; // least sensitive
+// Sensitivity bounds (match slider mapping)
+const THRESH_MIN = 1.05;
+const THRESH_MAX = 1.50;
 
-// --- Performance knobs ---
-const DETECT_FPS = 12;                     // run ML ~12x/sec
-const DETECT_INTERVAL = 1000 / DETECT_FPS; // ms between detections
+// Performance
+const DETECT_FPS = 12;
+const DETECT_INTERVAL = 1000 / DETECT_FPS;
 
 
 /* --------- State --------- */
@@ -88,15 +88,15 @@ let calibSamples = [];
 let calibCount = 0;
 let calibrating = false;
 
-let slouchStart = null;            // ms when index first exceeded threshold
-let slouchEpisodeAlerted = false;  // one beep per episode
-let lastAlert = 0;                 // ms last alert (shared)
+let slouchStart = null;
+let slouchEpisodeAlerted = false;
+let lastAlert = 0;
 
-let yawEMA = null;                 // smoothed yaw value
+let yawEMA = null;
 let yawHoldDir = "CENTER";
-let yawHoldStart = null;           // ms when yaw exceeded threshold
+let yawHoldStart = null;
 
-let lastDetectTs = 0; // ms timestamp of last ML pass
+let lastDetectTs = 0;
 
 
 /* --------- Wake Lock --------- */
@@ -105,21 +105,19 @@ async function requestWakeLock() { try { wakeLock = await navigator.wakeLock?.re
 async function releaseWakeLock() { try { await wakeLock?.release(); } catch {} wakeLock = null; }
 
 /* --------- Helpers --------- */
-function drawCircle(x, y, r = 6, color = "rgba(255,255,255,0.9)") {
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fill();
-}
-
 function setCameraOffUI() {
-  // Neutral text so pip-overlay parses state as UNKNOWN => "Camera off" + amber bars
-  if (els.postureMsg)   els.postureMsg.textContent   = "Posture: —";
-  if (els.directionMsg) els.directionMsg.textContent = "Direction: —";
-  setStatus("Camera is off — click Start Camera to begin.");
+  if (els.postureMsg)   els.postureMsg.textContent   = "—";
+  if (els.directionMsg) els.directionMsg.textContent = "—";
+  if (els.postureScore) els.postureScore.textContent = "—";
 }
 
-// Score aligned to the slider's range: THRESH_MIN -> 100, THRESH_MAX -> 0
+function setStatus(msg) { if (els.statusMsg) els.statusMsg.innerHTML = msg; }
+
+function runningHint() {
+  return "<b>Running</b><br>Click <b>Keep active</b> to open the mini window.<br>Keep this <b>Posturally</b> tab open for background monitoring.";
+}
+
+// 100% at THRESH_MIN, 0% at THRESH_MAX
 function indexToScoreAligned(indexVal) {
   if (!Number.isFinite(indexVal)) return null;
   const range = THRESH_MAX - THRESH_MIN;
@@ -127,17 +125,8 @@ function indexToScoreAligned(indexVal) {
   return Math.max(0, Math.min(100, Math.round(pct)));
 }
 
-
-
-function drawLine(ax, ay, bx, by, width = 1, color = "rgba(200,200,200,0.9)") {
-  ctx.strokeStyle = color;
-  ctx.lineWidth = width;
-  ctx.beginPath();
-  ctx.moveTo(ax, ay);
-  ctx.lineTo(bx, by);
-  ctx.stroke();
-}
 function px(pt) { return { x: pt.x * els.overlay.width, y: pt.y * els.overlay.height }; }
+
 function beep() {
   const o = audioCtx.createOscillator();
   const g = audioCtx.createGain();
@@ -148,23 +137,8 @@ function beep() {
   g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.25);
   o.start(); o.stop(audioCtx.currentTime + 0.26);
 }
-function setStatus(msg) { if (els.statusMsg) els.statusMsg.innerHTML = msg; }
-
-// Centralized copy for the running state
-function runningHint() {
-  return "<b>Running</b><br>Click <b>Keep active</b> to open the mini window.<br>Keep this <b>Posturally</b> tab open for background monitoring.";
-}
-
-// Convert slouch index (~1 good, ↑ worse) to a 0–100 score based on current threshold.
-// 100% ≈ upright (index~1), 0% ≈ at threshold.
-function indexToScore(indexVal, thresholdVal) {
-  if (!Number.isFinite(indexVal) || !Number.isFinite(thresholdVal) || thresholdVal <= 1) return null;
-  const pct = 100 * (1 - (indexVal - 1) / (thresholdVal - 1));
-  return Math.max(0, Math.min(100, Math.round(pct)));
-}
 
 function computeYaw(lms) {
-  // Face Landmarker indices: 33 (left eye outer), 263 (right eye outer), 1 (nose tip).
   const li = 33, ri = 263, noseIdx = 1;
   if (!lms || lms.length <= Math.max(li, ri, noseIdx)) return null;
   const left = lms[li], right = lms[ri], nose = lms[noseIdx];
@@ -210,7 +184,6 @@ function setToggleUI(on) {
     els.toggle.classList.toggle("is-on", on);
     els.toggle.setAttribute("aria-pressed", String(on));
   }
-  // Keep legacy buttons in sync if they exist
   if (els.start) els.start.disabled = on;
   if (els.stop)  els.stop.disabled  = !on;
 }
@@ -224,18 +197,17 @@ async function startCam() {
 
     setStatus("Requesting camera…");
     stream = await navigator.mediaDevices.getUserMedia({
-  video: {
-    width:     { ideal: 640 },   // 480p–720p is plenty for pose
-    height:    { ideal: 480 },
-    frameRate: { ideal: 15, max: 15 } // cut decode + ML cost
-  },
-  audio: false
-});
+      video: {
+        width:     { ideal: 640 },
+        height:    { ideal: 480 },
+        frameRate: { ideal: 15, max: 15 }
+      },
+      audio: false
+    });
 
     els.cam.srcObject = stream;
     await els.cam.play();
 
-    // match canvas to element size
     els.overlay.width  = els.overlay.clientWidth  || (els.cam.videoWidth  || 640);
     els.overlay.height = els.overlay.clientHeight || (els.cam.videoHeight || 480);
 
@@ -252,8 +224,9 @@ async function startCam() {
     yawHoldDir = "CENTER";
     yawHoldStart = null;
 
-    if (els.postureMsg)  els.postureMsg.textContent  = "Posture: —  —  Score: —";
-    if (els.directionMsg) els.directionMsg.textContent = "Direction: —";
+    // Clear sidebar values
+    setCameraOffUI();
+
     setStatus("Sit upright and press C to calibrate your good posture");
 
     await requestWakeLock();
@@ -273,18 +246,14 @@ async function startCam() {
 function stopCam() {
   if (!isCameraOn) return;
 
-  // stop loop
   if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-  // stop tracks
   if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-  // clear overlay
   if (ctx) ctx.clearRect(0, 0, els.overlay.width, els.overlay.height);
-  // reset video
   els.cam.srcObject = null;
 
   setToggleUI(false);
   setStatus("Camera stopped — click Start Camera to begin again.");
-    setCameraOffUI();
+  setCameraOffUI();
   try { window.pipOverlay?.draw?.(); } catch {}
   releaseWakeLock();
 }
@@ -293,24 +262,18 @@ function toggleCamera() {
   if (isCameraOn) stopCam(); else startCam();
 }
 
-// --- Keep Active button UI state (turn gray while PiP is active)
+// --- Keep Active button UI state
 const keepActiveBtn = els.pip;
 const pipCarrierVideo = document.getElementById("pipVideo");
-
 if (keepActiveBtn && pipCarrierVideo) {
-  // When PiP enters (fires on the video element)
   pipCarrierVideo.addEventListener("enterpictureinpicture", () => {
     keepActiveBtn.classList.add("is-active");
     keepActiveBtn.textContent = "Deactivate";
   });
-
-  // When PiP exits (fires on document)
   document.addEventListener("leavepictureinpicture", () => {
     keepActiveBtn.classList.remove("is-active");
     keepActiveBtn.textContent = "Keep active";
   });
-
-  // If user clicks while already active, exit PiP
   keepActiveBtn.addEventListener("click", async () => {
     if (document.pictureInPictureElement) {
       try { await document.exitPictureInPicture(); } catch {}
@@ -321,7 +284,7 @@ if (keepActiveBtn && pipCarrierVideo) {
 
 // Calibration helper
 function startCalibration() {
-  if (!isCameraOn) return; // only when camera is running
+  if (!isCameraOn) return;
   calibrating = true;
   calibSamples = [];
   calibCount = 0;
@@ -329,7 +292,8 @@ function startCalibration() {
   slouchStart = null;
   slouchEpisodeAlerted = false;
   setStatus("Calibration started — sit upright and hold for ~1s…");
-  if (els.postureMsg) els.postureMsg.textContent = "Posture: —  —  Score: —";
+  if (els.postureMsg)   els.postureMsg.textContent   = "—";
+  if (els.postureScore) els.postureScore.textContent = "—";
 }
 
 /* --------- Main loop --------- */
@@ -337,7 +301,6 @@ async function loop() {
   if (!isCameraOn) return;
   const now = performance.now();
 
-  // Throttle ML work
   if (now - lastDetectTs < DETECT_INTERVAL) {
     rafId = requestAnimationFrame(loop);
     return;
@@ -366,8 +329,6 @@ async function loop() {
 
     const { metric } = noseToShoulderDistanceNorm(nose, lSh, rSh);
 
-    
-
     if (calibrating) {
       const valid = Number.isFinite(metric) && metric > 0;
       if (valid) {
@@ -379,8 +340,7 @@ async function loop() {
           calibrating = false;
           calibSamples = [];
           calibCount = 0;
-          setStatus("<b>Running</b><br>Click <b>Keep active</b> to open the mini window.<br>Keep this <b>Posturally</b> tab open for background monitoring.");
-;
+          setStatus(runningHint());
         }
       } else {
         setStatus("Calibrating… (make sure both shoulders and face are visible)");
@@ -392,42 +352,43 @@ async function loop() {
         slouchIndex = baselineMetric / Math.max(metric, 1e-6); // smaller distance => higher index
       }
 
-      // Read the *threshold* your slider set (via hidden #ratio)
+      // Slider threshold
       const threshold = parseFloat(els.ratio?.value || "1.20");
 
-      // Absolute score 0..100
+      // 0..100 score aligned to sensitivity range
       const score = indexToScoreAligned(slouchIndex);
       const scoreTxt = (score == null) ? "—" : `${score}%`;
-      
-      // Timer settings
+
+      // Slouch timer config
       const holdMs = Math.max(0, parseFloat(els.hold?.value || "30") * 1000);
 
-      // Slouch zone is defined by threshold (sensitivity)
-      // (index>threshold) <=> (scoreAbs < indexToScoreAbs(threshold))
-      const belowSensitivity = (slouchIndex != null) && (slouchIndex > threshold);
+      // In slouch zone?
+      const isSlouching = (slouchIndex != null) && (slouchIndex > threshold);
 
-      if (belowSensitivity) {
+      if (isSlouching) {
         if (!slouchStart) { slouchStart = performance.now(); slouchEpisodeAlerted = false; }
         const held = performance.now() - slouchStart;
 
-        els.postureMsg && (els.postureMsg.textContent =
-          `Posture: Slouching — Score: ${scoreTxt} — Time: ${(held/1000).toFixed(1)}s`);
+        // Posture label only; score shows "% • seconds"
+        if (els.postureMsg)   els.postureMsg.textContent = "Slouching";
+        if (els.postureScore) els.postureScore.textContent = `${scoreTxt} • ${(held/1000).toFixed(1)}s`;
 
         if (!slouchEpisodeAlerted && held >= holdMs && performance.now() - lastAlert >= COOLDOWN_MS) {
           lastAlert = performance.now();
           slouchEpisodeAlerted = true;
           if (els.beep?.checked) beep();
         }
-        setStatus("<b>Running</b><br>Click <b>Keep active</b> to open the mini window.<br>Keep this <b>Posturally</b> tab open for background monitoring.");
+        setStatus(runningHint());
 
       } else {
         slouchStart = null;
         slouchEpisodeAlerted = false;
-        els.postureMsg && (els.postureMsg.textContent = `Posture: Upright — Score: ${scoreTxt}`);
-        if (baselineMetric != null) {
-          setStatus("<b>Running</b><br>Click <b>Keep active</b> to open the mini window.<br>Keep this <b>Posturally</b> tab open for background monitoring.");
 
-        }
+        // Upright: label only; score is just the %
+        if (els.postureMsg)   els.postureMsg.textContent = "Upright";
+        if (els.postureScore) els.postureScore.textContent = scoreTxt;
+
+        if (baselineMetric != null) setStatus(runningHint());
       }
     }
   } else {
@@ -435,7 +396,6 @@ async function loop() {
       setStatus("No person detected — click Start and allow camera access");
     }
   }
-
 
   // --- Face / Direction ---
   if (faceRes?.faceLandmarks?.length) {
@@ -450,7 +410,6 @@ async function loop() {
       else if (yawAdj < -YAW_THRESHOLD) label = "Left";
 
       const yawHoldMs = Math.max(0, parseFloat(els.yawHold?.value || "30") * 1000);
-
       if (label !== "Center") {
         if (yawHoldDir !== label) { yawHoldDir = label; yawHoldStart = performance.now(); }
         const heldMs = performance.now() - (yawHoldStart || performance.now());
@@ -462,67 +421,47 @@ async function loop() {
         yawHoldDir = "CENTER"; yawHoldStart = null;
       }
 
-      els.directionMsg && (els.directionMsg.textContent = `Direction: ${label}`);
+      if (els.directionMsg) els.directionMsg.textContent = label;
     }
   } else {
-    els.directionMsg && (els.directionMsg.textContent = "Direction: —");
+    if (els.directionMsg) els.directionMsg.textContent = "—";
   }
 
   rafId = requestAnimationFrame(loop);
 }
 
 /* --------- Events --------- */
-
-// Preferred: single toggle button
 if (els.toggle) els.toggle.addEventListener("click", toggleCamera);
 
-// Back-compat: legacy start/stop buttons
 if (!els.toggle) {
   els.start?.addEventListener("click", startCam);
   els.stop?.addEventListener("click", stopCam);
 }
 
-// Calibrate button click
 els.calibrate?.addEventListener("click", startCalibration);
 
-// Keyboard: 'c' to calibrate; Space toggles camera
 window.addEventListener("keydown", (e) => {
   const key = e.key.toLowerCase();
-  if (key === "c" && isCameraOn) {
-    startCalibration();
-  }
-  if (e.code === "Space" && !e.repeat) {
-    e.preventDefault();
-    toggleCamera();
-  }
+  if (key === "c" && isCameraOn) startCalibration();
+  if (e.code === "Space" && !e.repeat) { e.preventDefault(); toggleCamera(); }
 });
 
-// Background hint
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") {
     setStatus("Background tab — use PiP to keep detection active");
   } else {
-    if (!isCameraOn) {
-      setStatus("Camera is off — click Start Camera to begin.");
-    } else {
-      setStatus(
-        baselineMetric
-          ? runningHint()
-          : "Sit upright with your face and shoulders on screen. Press C to calibrate your good posture"
-      );
-    }
+    if (!isCameraOn) setStatus("Camera is off — click Start Camera to begin.");
+    else setStatus(baselineMetric ? runningHint() :
+      "Sit upright with your face and shoulders on screen. Press C to calibrate your good posture");
   }
 });
 
-
-// Cleanup
 window.addEventListener("beforeunload", () => {
   if (stream) stream.getTracks().forEach(t => t.stop());
   releaseWakeLock();
 });
 
 /* --------- Geometry helpers --------- */
-/** Perpendicular distance from NOSE to shoulder segment, normalized by shoulder width. */
 function noseToShoulderDistanceNorm(nose, lSh, rSh) {
   if (!nose || !lSh || !rSh) return { metric: null, proj: null };
   const ax = lSh.x, ay = lSh.y;
@@ -544,7 +483,7 @@ function noseToShoulderDistanceNorm(nose, lSh, rSh) {
   return { metric: dist/shoulderW, proj: {x: qx, y: qy} };
 }
 
-/* ---------- Contact modal (target by ID to avoid clashes with onboarding overlay) ---------- */
+/* ---------- Contact modal ---------- */
 const contactBtn    = document.getElementById("contactButton");
 const contactModal  = document.getElementById("contactModal");
 const contactCancel = document.getElementById("contactCancel");
@@ -553,78 +492,16 @@ const contactForm   = document.getElementById("contactForm");
 contactBtn?.addEventListener("click", () => contactModal?.classList.add("is-open"));
 contactCancel?.addEventListener("click", () => contactModal?.classList.remove("is-open"));
 
-// Click backdrop to close
 contactModal?.addEventListener("click", (e) => {
   if (e.target === contactModal) contactModal.classList.remove("is-open");
 });
-
-// ESC to close
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") contactModal?.classList.remove("is-open");
 });
-
-// Close after submit + show friendly confirmation in status line
 contactForm?.addEventListener("submit", () => {
   contactModal?.classList.remove("is-open");
   try { setStatus("Thanks! Your message was sent. We’ll reply soon."); } catch {}
 });
 
 
-/* ---------- Quick Start & Floating Help ---------- */
-const quickStartBtn = document.getElementById("quickStart");
-const startCamBtn   = document.getElementById("cameraToggle");
-const videoWrap     = document.querySelector(".video-wrap");
-const floatingHelp  = document.getElementById("floatingHelp");
-
-// Try to open onboarding if your onboarding.js exposes it; otherwise show a hint
-function openQuickTips() {
-  try {
-    if (window.onboarding && typeof window.onboarding.open === "function") {
-      window.onboarding.open();
-      return;
-    }
-  } catch {}
-  // Fallback hint
-  try { setStatus("Tip: Click <b>Start Camera</b>, then press <b>C</b> to calibrate your good posture."); } catch {}
-}
-
-// Scroll to camera and gently “pulse” the Start button
-function focusCameraArea() {
-  if (videoWrap) videoWrap.scrollIntoView({ behavior: "smooth", block: "center" });
-  if (startCamBtn) {
-    startCamBtn.classList.remove("pulse");        // restart animation if already present
-    void startCamBtn.offsetWidth;                  // reflow to reset CSS animation
-    startCamBtn.classList.add("pulse");
-    startCamBtn.focus({ preventScroll: true });
-  }
-}
-
-quickStartBtn?.addEventListener("click", () => {
-  focusCameraArea();
-
-});
-
-
-if (keepActiveBtn) {
-  // When PiP enters
-  document.addEventListener("enterpictureinpicture", () => {
-    keepActiveBtn.classList.add("is-active");
-    keepActiveBtn.textContent = "Deactivate";
-  });
-
-  // When PiP exits
-  document.addEventListener("leavepictureinpicture", () => {
-    keepActiveBtn.classList.remove("is-active");
-    keepActiveBtn.textContent = "Keep active";
-  });
-
-  // Also handle click if you want "Deactivate" to close PiP
-  keepActiveBtn.addEventListener("click", async () => {
-    if (document.pictureInPictureElement) {
-      // Already active → deactivate
-      await document.exitPictureInPicture().catch(() => {});
-    }
-    // else normal behavior is handled by pip-overlay.js
-  });
-}
 

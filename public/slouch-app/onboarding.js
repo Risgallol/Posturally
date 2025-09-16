@@ -33,12 +33,12 @@ const STEPS = [
     placement:"left" },
 
   // ➜ SIDE placement so it doesn’t cover the whole card
-  { id:"statusBar", target:".status-panel", title:"Status & Guidance",
-    body:"This bar shows your current status (upright, slouching, looking away) and provides guidance if you need reminders later.",
+  { id:"statusBar", target:".status-panel, .video-aside", title:"Status & Guidance",
+    body:"These sectioins show your current score, status, and direction and provides guidance if you need reminders later.",
     placement:"right" },
 
   { id:"pipInfo", target:"#statusPip", title:"Mini-window Hints",
-    body:"The mini-window will show a <b>green/red bar</b> for posture and an <b>arrow</b> to guide your head on each side. <br><br>💡 <b>Tip:</b> Tuck it to the side, keeping the color bar for nudges with minimal distraction.",
+    body:"The mini-window will show a <b>green bar </b> that will turn <b>red </b> when you've been slouching for your defined <b> time </b> and an <b>arrow</b> to guide your head on each side. <br><br>💡 <b>Tip:</b> Tuck it to the side, keeping the color bar for nudges with minimal distraction.",
     placement:"right" },
 ];
 
@@ -155,6 +155,16 @@ function highlight(el) {
 function unhighlight(el) {
   el.classList.remove("onb-highlight");
 }
+function highlightAll(list) {
+  list.forEach(el => el && el.classList.add("onb-highlight"));
+  // scroll the first visible target into view
+  const first = list.find(el => !!el);
+  if (first) first.scrollIntoView({ block: "center", behavior: "smooth" });
+}
+function unhighlightAll(list) {
+  list.forEach(el => el && el.classList.remove("onb-highlight"));
+}
+
 
 /* ---------- Main tour ---------- */
 function runTour() {
@@ -164,21 +174,22 @@ function runTour() {
   const stepEl  = panel.querySelector(".onb-step");
 
   let i = 0;
-  let currentTarget = null;
+  let currentTargets = [];
   let observing = false;
 
 let currentPlacement = "bottom";
 
 function render() {
-  while (i < STEPS.length && !qs(STEPS[i].target)) i++;
+  while (i < STEPS.length && qsa(STEPS[i].target).length === 0) i++;
   if (i >= STEPS.length) return end(true);
 
   const step = STEPS[i];
-  const target = qs(step.target);
+  const targets = qsa(step.target);
+  const anchor  = targets[0]; // use the first one to position the panel
 
-  if (currentTarget && currentTarget !== target) unhighlight(currentTarget);
-  currentTarget = target;
-  highlight(target);
+  if (currentTargets.length) unhighlightAll(currentTargets);
+  currentTargets = targets;
+  highlightAll(currentTargets);
 
   overlay.classList.add("is-open");
 
@@ -190,7 +201,8 @@ bodyEl.innerHTML  = step.body;
 stepEl.textContent = `Step ${i + 1} of ${STEPS.length}`;
 
 requestAnimationFrame(() => {
-  positionPanel(panel, target, step.placement);
+  positionPanel(panel, anchor, step.placement);   // position near the first match
+  currentPlacement = step.placement; // keep for resize/scroll reflows
   panel.setAttribute("data-ready", "1"); // reveal after placement
 });
 }
@@ -198,15 +210,16 @@ requestAnimationFrame(() => {
 // reflow when viewport moves/changes
 const reflow = () => {
   const step = STEPS[i];
-  const target = step && qs(step.target);
-  if (!target) return;
-  positionPanel(panel, target, currentPlacement);
+  const matches = step ? qsa(step.target) : [];
+  const anchor = matches[0];
+  if (!anchor) return;
+  positionPanel(panel, anchor, currentPlacement);
 };
 window.addEventListener("resize", reflow, { passive: true });
 window.addEventListener("scroll", reflow, { passive: true });
 
   function end(done = true) {
-    if (currentTarget) unhighlight(currentTarget);
+    if (currentTargets.length) unhighlightAll(currentTargets);
     if (overlay.isConnected) overlay.remove();
     if (done) localStorage.setItem(LS_KEY, "1");
     // Clean up keyboard handler

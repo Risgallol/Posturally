@@ -18,6 +18,7 @@
         <p class="app-subtitle">
           All-local posture & direction monitoring — no uploads
         </p>
+        <div style="height: 0.5em;"></div>
 
           <div class="header-actions">
           <!-- Primary CTA: guides users to start -->
@@ -43,10 +44,33 @@
 
 
 
-    <div class="panel video-wrap">
-      <video id="cam" autoplay playsinline></video>
-      <canvas id="overlay"></canvas>
-    </div>
+    <!-- Video + Sidebar -->
+    <section class="video-layout">
+      <!-- Left: video with overlay -->
+      <div class="panel video-wrap">
+        <video id="cam" autoplay playsinline></video>
+        <canvas id="overlay"></canvas>
+      </div>
+
+      <!-- Right: always-visible quick stats -->
+      <aside class="panel video-aside">
+        <div class="aside-section">
+          <div class="aside-label">Score</div>
+          <div class="score-value" id="postureScore">—</div>
+        </div>
+
+        <div class="aside-section">
+          <div class="aside-label">Posture</div>
+          <div class="aside-value" id="postureMsg">—</div>
+        </div>
+
+        <div class="aside-section">
+          <div class="aside-label">Direction</div>
+            <div class="aside-value" id="directionMsg">—</div>
+        </div>
+      </aside>
+    </section>
+
 
     <div class="controls">
       <!-- Three buttons in one row -->
@@ -100,21 +124,16 @@
           </div>
         </div>
       </div>
+    </div>
 
 
-<!-- Status panel -->
+<!-- Status panel (kept where it is) -->
 <div class="status-panel panel">
-  <!-- Top line: dynamic status message (neutral text) -->
-  <div id="statusMsg" class="status-instruction">
+  <div id="statusMsg" class="status-instruction" role="status" aria-live="polite">
     Camera is off — click <b>Start Camera</b> to begin.
   </div>
-
-  <!-- Second row: two side-by-side boxes -->
-  <div class="status-row">
-    <div id="postureMsg" class="status-strong status-box">Posture: —  —  Score: —</div>
-    <div id="directionMsg" class="status-strong status-box">Direction: —</div>
-  </div>
 </div>
+
 
 
   <!-- Hidden video used to carry the status-only canvas into PiP -->
