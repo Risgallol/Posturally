@@ -1,5 +1,5 @@
 
-const CACHE = "slouchapp-v1";
+const CACHE = "posturally-v2025-09-23";
 const ASSETS = [
   "./",
   "./index.html",
@@ -9,17 +9,50 @@ const ASSETS = [
   "./js/sensitivity.js"
 ];
 
-self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));
+self.addEventListener("activate", (e) => {
+  const keep = [CACHE];
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.map(k => (keep.includes(k) ? null : caches.delete(k))))
+    ).then(() => self.clients.claim())
+  );
 });
+
 self.addEventListener("activate", (e) => {
   e.waitUntil(self.clients.claim());
 });
 self.addEventListener("fetch", (e) => {
-  const url = new URL(e.request.url);
-  if (ASSETS.includes(url.pathname) || url.origin === location.origin) {
+  const req = e.request;
+  const url = new URL(req.url);
+
+  // Always go network-first for HTML navigations
+  const isHTML = req.mode === "navigate" ||
+                 (req.destination === "document") ||
+                 (url.pathname.endsWith(".html"));
+
+  if (isHTML) {
     e.respondWith(
-      caches.match(e.request).then((r) => r || fetch(e.request))
+      fetch(req).then(r => {
+        const copy = r.clone();
+        caches.open(CACHE).then(c => c.put(req, copy)).catch(()=>{});
+        return r;
+      }).catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  // For same-origin assets: stale-while-revalidate
+  if (url.origin === location.origin) {
+    e.respondWith(
+      caches.match(req).then(cached => {
+        const net = fetch(req).then(r => {
+          const copy = r.clone();
+          caches.open(CACHE).then(c => c.put(req, copy)).catch(()=>{});
+          return r;
+        }).catch(()=>cached);
+        return cached || net;
+      })
     );
   }
 });
+
